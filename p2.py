@@ -18,7 +18,7 @@ def calculate_sha256(file_path, chunk_size=65536):
     except FileNotFoundError:
         return "Lỗi: Không tìm thấy tệp video."
     except Exception as e:
-        return f"Đã xảy ra lỗi: {e}"
+        return f"Đã xảy ra lỗi: {e}" 
 
 def choose_video_file():
     root = tk.Tk()
@@ -38,7 +38,7 @@ def choose_video_file():
 
 if __name__ == "__main__":
     tam = -1
-    save_file = 'luutru.json' 
+    save_file = 'luutru.jsonl' 
     
     while tam != 0:
         print('\n--- MENU QUẢN LÝ VIDEO ---')
@@ -71,9 +71,8 @@ if __name__ == "__main__":
                 }
                 
                 with open(save_file, 'a', encoding='utf-8') as file:
-                    json.dump(data, file, ensure_ascii=False, indent=4)
-                    file.write('\n')
-                    
+                    file.write(json.dumps(data, ensure_ascii=False) + '\n')
+
                 print(f"✅ Đã lưu thành công với tên gọi: '{custom_name}'")
             else:
                 print("❌ Thao tác bị hủy: Bạn chưa chọn video nào.")
