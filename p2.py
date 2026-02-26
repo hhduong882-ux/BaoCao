@@ -4,14 +4,14 @@ from tkinter import filedialog
 import os
 import json 
 
-def calculate_sha256(file_path, chunk_size=65536):
+def calculate_sha256(file_path, kichthuoc=65536):
     if not file_path:
         return None
         
     sha256_hash = hashlib.sha256()
     try:
         with open(file_path, "rb") as f:
-            for byte_block in iter(lambda: f.read(chunk_size), b""):
+            for byte_block in iter(lambda: f.read(kichthuoc), b""):
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
         
@@ -82,8 +82,12 @@ if __name__ == "__main__":
                 print(f"❌ Lỗi: File '{save_file}' chưa tồn tại. Vui lòng chạy Lựa chọn 1 trước để lưu dữ liệu!")
                 continue
             
+            # Đọc file theo từng dòng (JSONL format) để tránh lỗi JSONDecodeError
+            data = []
             with open(save_file, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+                for line in file:
+                    if line.strip():
+                        data.append(json.loads(line))
             
             if not data:
                 print("❌ Kho dữ liệu hiện đang trống. Vui lòng thêm video mới!")
@@ -94,27 +98,33 @@ if __name__ == "__main__":
             
             if video_path:
                 print("\n--- DANH SÁCH VIDEO ĐÃ LƯU ---")
-                for index, item in enumerate(data):
-                    print(f"{index + 1}. [{item.get('ten_goi')}]")
+                for item in data:
+                    print(f"[{item.get('ten_goi')}]")
                 print("------------------------------")
                 
-                try:
-                    chon_ten = int(input("Nhập số thứ tự của video bạn muốn đối chiếu: "))
-                    # Lấy thông tin video đã chọn
-                    selected_item = data[chon_ten - 1]
-                    expected_hash = selected_item.get("ma_bam")
-                    expected_name = selected_item.get("ten_goi")
+                chon_ten = input("Nhập chính xác tên video bạn muốn đối chiếu: ").strip()
+                
+                # Tìm video trong danh sách
+                item_duocchon = None
+                for item in data:
+                    if item.get("ten_goi") == chon_ten:
+                        item_duocchon = item
+                        break 
+                
+                if item_duocchon:
+                    hash_goc = item_duocchon.get("ma_bam")
+                    name = item_duocchon.get("ten_goi")
                         
-                    print(f"\nĐang tính toán SHA-256 cho file vừa chọn: {os.path.basename(video_path)}...")
+                    print("Đang tính toán SHA-256 cho file vừa chọn")
                     new_hash = calculate_sha256(video_path)
                         
-                    print(f"\nĐang so sánh với hồ sơ: [{expected_name}]...")
-                    if new_hash == expected_hash:
+                    print("Đang so sánh với hồ sơ: [{name}]...")
+                    if new_hash == hash_goc:
                         print("✅ Kết quả: GIỐNG NHAU (Đây chính xác là video bạn đã lưu, dữ liệu nguyên vẹn)")
                     else:
                         print("⚠️ Kết quả: KHÁC NHAU (Đây không phải là video đó, hoặc video đã bị chỉnh sửa/hỏng)")
-                except ValueError:
-                    print("❌ Lỗi: Vui lòng nhập một số hợp lệ.")
+                else:
+                    print(f"❌ Lỗi: Không tìm thấy hồ sơ nào có tên '{chon_ten}'")
             else:
                 print("❌ Thao tác bị hủy: Bạn chưa chọn video nào.")
                 
