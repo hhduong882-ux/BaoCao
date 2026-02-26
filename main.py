@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 import json 
+from datetime import datetime
 
 def calculate_sha256(file_path, kichthuoc=65536):
     if not file_path:
@@ -39,7 +40,8 @@ def choose_video_file():
 if __name__ == "__main__":
     tam = -1
     save_file = 'luutru.jsonl' 
-    
+    FOLDER_LOGS = "GiamSat"
+
     while tam != 0:
         print('\n--- MENU QUẢN LÝ VIDEO ---')
         print('1. Lưu thông tin (Mã băm) vào file')
@@ -118,11 +120,28 @@ if __name__ == "__main__":
                     print("Đang tính toán SHA-256 cho file vừa chọn")
                     new_hash = calculate_sha256(video_path)
                         
-                    print("Đang so sánh với hồ sơ: [{name}]...")
+                    print(f"Đang so sánh với hồ sơ: [{name}]...")
                     if new_hash == hash_goc:
-                        print("✅ Kết quả: GIỐNG NHAU (Đây chính xác là video bạn đã lưu, dữ liệu nguyên vẹn)")
+                        ket_qua_str = "✅ Kết quả: GIỐNG NHAU (Đây chính xác là video bạn đã lưu, dữ liệu nguyên vẹn)"
                     else:
-                        print("⚠️ Kết quả: KHÁC NHAU (Đây không phải là video đó, hoặc video đã bị chỉnh sửa/hỏng)")
+                        ket_qua_str = "⚠️ Kết quả: KHÁC NHAU (Đây không phải là video đó, hoặc video đã bị chỉnh sửa/hỏng)"
+                    print(ket_qua_str)
+
+                    log_entry = {
+                        "thoi_gian": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "video_doi_chieu": chon_ten,
+                        "file_thuc_te": os.path.basename(video_path),
+                        "ket_qua": ket_qua_str,
+                        "ma_bam_goc": item_duocchon["ma_bam"],
+                        "ma_bam_kiem_tra": new_hash
+                    }
+                    # Đầu ra
+                    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    file_name = f"KiemTra_{os.path.basename(video_path)}_{chon_ten}_{timestamp_str}.json".replace(" ", "_")
+                    file_full_path = os.path.join(FOLDER_LOGS, file_name)
+                    
+                    with open(file_full_path, 'w', encoding='utf-8') as f:
+                        json.dump(log_entry, f, ensure_ascii=False, indent=4)
                 else:
                     print(f"❌ Lỗi: Không tìm thấy hồ sơ nào có tên '{chon_ten}'")
             else:
